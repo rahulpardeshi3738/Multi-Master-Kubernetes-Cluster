@@ -46,5 +46,4 @@ echo "Configuration snippet added to $HAPROXY_CONFIG"
 echo "Starting & enabling HAProxy service"
 
 systemctl restart haproxy
-
 systemctl enable haproxy
