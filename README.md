@@ -1,4 +1,4 @@
-# 🚀 Deploying a Highly Available Kubernetes Cluster with `kubeadm`, `HAProxy`, and `Keepalived` on Ubuntu (Bare Metal / VMs)
+# 🚀 Deploying a Highly Available Kubernetes Cluster with `kubeadm`, 'HAProxy', and 'Keepalived' on Ubuntu (Bare Metal / VMs)
 
 In this guide, you'll learn how to deploy a **Highly Available Kubernetes Cluster** using:
 
@@ -80,6 +80,101 @@ Update the `/etc/hosts` file on **all nodes** to include the following entries:
 10.18.0.177 node2.kristasoft.com kristasoft.com node2
 10.18.0.178 node3.kristasoft.com kristasoft.com node3
 ```
+
+---
+## 🔁 Load Balancer Setup with HAProxy and Keepalived
+
+To achieve high availability for the Kubernetes API server, we’ll install and configure **HAProxy** and **Keepalived** on two Ubuntu servers acting as load balancers.
+
+These steps **must be run on both**:
+
+- `haproxy01` (10.18.0.171)
+- `haproxy02` (10.18.0.172)
+
+We’ll configure a **Virtual IP (VIP)** at `10.18.0.170` that floats between the two, ensuring continuous API server availability even if one load balancer fails.
+
+### 📜 HAProxy + Keepalived Installation Script
+
+Create and run the following shell script on **both** HAProxy nodes:
+
+> Save as `setup_haproxy_keepalived.sh` and execute:  
+> `bash setup_haproxy_keepalived.sh`
+
+```bash
+#!/bin/bash
+
+# Install HAProxy and Keepalived
+apt update && apt upgrade -y && apt install -y haproxy keepalived
+
+# HAProxy Configuration
+HAPROXY_CONFIG="/etc/haproxy/haproxy.cfg"
+haproxy1_ip=10.18.0.171
+haproxy2_ip=10.18.0.172
+VIP=10.18.0.170
+
+CONFIG_HAPROXY=$(cat <<EOF
+frontend kubernetes
+    bind ${VIP}:6443
+    mode tcp
+    option tcplog
+    default_backend kubernetes-master-nodes
+
+backend kubernetes-master-nodes
+    mode tcp
+    option tcplog
+    option tcp-check
+    balance roundrobin
+    default-server inter 10s downinter 5s rise 2 fall 2 slowstart 60s maxconn 250 maxqueue 256 weight 100
+    server master1 10.18.0.173:6443 check fall 3 rise 2
+    server master2 10.18.0.174:6443 check fall 3 rise 2
+    server master3 10.18.0.175:6443 check fall 3 rise 2
+
+frontend stats
+    bind *:8404
+    stats enable
+    stats uri /stats
+    stats refresh 10
+EOF
+)
+
+echo "Configuring HAProxy at $HAPROXY_CONFIG..."
+echo "$CONFIG_HAPROXY" | sudo tee -a $HAPROXY_CONFIG > /dev/null
+
+systemctl restart haproxy
+systemctl enable haproxy
+
+# Keepalived Configuration
+KEEPALIVED_CONFIG="/etc/keepalived/keepalived.conf"
+
+CONFIG_KEEPALIVED=$(cat <<EOF
+vrrp_instance VI_1 {
+    state MASTER
+    interface eth0                # ⚠️ Change to your actual NIC name (e.g., ens3, enp0s3)
+    virtual_router_id 51
+    priority 100
+    advert_int 1
+    authentication {
+        auth_type PASS
+        auth_pass 1234
+    }
+    virtual_ipaddress {
+        ${VIP}
+    }
+}
+EOF
+)
+
+echo "Configuring Keepalived at $KEEPALIVED_CONFIG..."
+echo "$CONFIG_KEEPALIVED" | sudo tee -a $KEEPALIVED_CONFIG > /dev/null
+
+systemctl enable keepalived
+systemctl restart keepalived
+
+echo "✅ HAProxy and Keepalived setup complete."
+```
+You’re now ready to proceed to Kubernetes installation with kubeadm and Weave Net as CNI.
+
+
 ---
 ## ⚙️ Kubernetes Installation with kubeadm and Weave Net (CNI)
 
