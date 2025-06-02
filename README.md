@@ -167,9 +167,24 @@ kubeadm join VIP:6443 \
   --token <your-token> \
   --discovery-token-ca-cert-hash sha256:<your-ca-hash>```
 ```
-### ⚙️ Set Up kubectl Access (Master 1 Only)
+### ⚙️ Set Up kubectl on any server to Access (Master 1 Only)
+```bash
+sudo apt-get update
+sudo apt-get install -y apt-transport-https ca-certificates curl gnupg
+sudo mkdir -p -m 755 /etc/apt/keyrings
+curl -fsSL https://pkgs.k8s.io/core:/stable:/v1.31/deb/Release.key | sudo gpg --dearmor -o /etc/apt/keyrings/kubernetes-apt-keyring.gpg
+sudo chmod 644 /etc/apt/keyrings/kubernetes-apt-keyring.gpg 
+echo 'deb [signed-by=/etc/apt/keyrings/kubernetes-apt-keyring.gpg] https://pkgs.k8s.io/core:/stable:/v1.31/deb/ /' | sudo tee /etc/apt/sources.list.d/kubernetes.list
+sudo chmod 644 /etc/apt/sources.list.d/kubernetes.list  
+sudo apt-get update
+sudo apt-get install -y kubectl
+```
+### ➕ Get config file from Master 1
 ```bash
 cat /etc/kubernetes/admin.conf  
+```
+### ➕ Update config file from Master 1 to server where kubeclt is installed
+```bash
 vim $HOME/.kube/config
 chown $(id -u):$(id -g) $HOME/.kube/config
 ```
@@ -178,4 +193,3 @@ chown $(id -u):$(id -g) $HOME/.kube/config
 ```bash
 kubectl apply -f https://github.com/weaveworks/weave/releases/download/v2.8.1/weave-daemonset-k8s.yaml
 ```
-
