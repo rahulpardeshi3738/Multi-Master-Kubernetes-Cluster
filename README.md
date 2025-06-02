@@ -1,4 +1,4 @@
-# 🚀 Deploying a Highly Available Kubernetes Cluster with `kubeadm`, 'HAProxy', and 'Keepalived' on Ubuntu (Bare Metal / VMs)
+# 🚀 Deploying a Highly Available Kubernetes Cluster with `kubeadm`, `HAProxy`, and `Keepalived` on Ubuntu (Bare Metal / VMs)
 
 In this guide, you'll learn how to deploy a **Highly Available Kubernetes Cluster** using:
 
