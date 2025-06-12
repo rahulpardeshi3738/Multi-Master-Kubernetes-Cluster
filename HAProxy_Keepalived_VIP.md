@@ -6,12 +6,12 @@ This guide sets up a Virtual IP (VIP) using HAProxy and Keepalived for Kubernete
 
 ## 🖥️ 1. Host Configuration
 
- ### Set Hostnames (run on each HAProxy server):
+ #### Set Hostnames (run on each HAProxy server):
 ```bash
 sudo hostnamectl set-hostname <hostname>  # Replace with e.g., haproxy1 or haproxy2
 ```
 
-### Add All Nodes to /etc/hosts
+#### Add All Nodes to /etc/hosts
 ```
 cat << EOF | sudo tee -a /etc/hosts
 10.18.0.171 haproxy1.kristasoft.com haproxy1
