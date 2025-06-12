@@ -114,6 +114,7 @@ sudo systemctl restart keepalived
 ### 🔐 Notes
 - Replace ens18 with your actual network interface.
 - Ensure firewall allows port 6443 and VRRP traffic (protocol 112).
+- We can also configure HAProxy and  Keepalived in Master nodes itself.
 
 
 
