@@ -189,6 +189,8 @@ sudo su -
 ```bash
 swapoff -a
 sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
+cat /etc/fstab
+free -h
 ```
 ### 🧱 2. Load Kernel Modules and Set Sysctl Parameters (All Nodes)
  ```bash
